@@ -1,0 +1,24 @@
+{
+  "name": "whatsapp-api",
+  "version": "1.0.0",
+  "description": "Whatsapp Api by Angga",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anggaprasetya-fs/whatsapp-api.git"
+  },
+  "author": "Angga Prasetya",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anggaprasetya-fs/whatsapp-api/issues"
+  },
+  "homepage": "https://github.com/anggaprasetya-fs/whatsapp-api#readme",
+  "dependencies": {
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.15.3"
+  }
+}
