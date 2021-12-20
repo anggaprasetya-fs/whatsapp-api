@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div id="app">
+        <h1>Whatsapp API</h1>
+        <p>Powered by Angga Prasetya</p>
+        <img src="" alt="QR Code" id="qrcode">
+        <h3>Logs:</h3>
+        <ul class="logs"></ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.min.js" integrity="sha512-I9p4eOeWXGM9m5GhJYd3UDUA5Lr+Epp5e4ykWFYW9hv3jZqdR92S5p+ApMSWuMaV4E+JqILepP1G9kNer4AFGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        $(document).ready(function() {
+            var socket = io.connect('http://localhost:8000', { path: "/socket.io" });
+
+            socket.on('none', function(src) {
+                $(".logs").append($('<li>').text("Connecting..."));
+                $("#qrcode").hide();
+            });
+
+            socket.on('message', (msg) => {
+                $(".logs").append($('<li>').text(msg));
+            });
+
+            socket.on('qr', function(src) {
+                $("#qrcode").attr('src', src);
+            });
+
+            socket.on('ready', function(src) {
+                $("#qrcode").hide();
+            });
+
+            socket.on('authenticated', function(src) {
+                $("#qrcode").hide();
+            });
+        })
+    </script>
+</body>
+</html>
