@@ -4,11 +4,12 @@ const qrcode            = require('qrcode');
 const expressjs         = require('express');
 const http              = require('http');
 const socketIo          = require('socket.io');
-
 const app               = expressjs();
 const server            = http.createServer(app);
 const io                = socketIo(server);
 
+const { body, validationResult }    = require('express-validator');
+const { formatNumber }              = require('./helpers/formatter');
 
 // Declaration
 app.use(expressjs.json());
@@ -25,12 +26,19 @@ if(fs.existsSync(SESSION_FILE_PATH))
 const client    = new Client({
     puppeteer: 
     {
-        headless: true
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-accelerated-2d-canvas',
+            '--no-first-run',
+            '--no-zygote',
+            '--disable-gpu'
+        ],
     },
     session: sessionData
 });
-
-// const client = new Client();
 
 // Express JS Process
 app.get('/', (req, res) => {
@@ -40,15 +48,32 @@ app.get('/', (req, res) => {
 // Whatsapp API Process
 client.on('message', async msg => {
 
-    if (msg.body == "!hallo") 
+    if (msg.body == ".hallo") 
     {
         msg.reply("Yes im here");
     }
-    else if (msg.body == "!me") 
+    else if (msg.body == ".me") 
     {
         msg.reply(msg.from); 
     }
-})
+    else if (msg.body === '.groupinfo') 
+    {
+        let chat = await msg.getChat();
+        if (chat.isGroup) {
+            msg.reply(`
+            *Group Details*
+            ID: ${chat.id._serialized}
+            Name: ${chat.name}
+            Description: ${chat.description}
+            Created At: ${chat.createdAt.toString()}
+            Created By: ${chat.owner.user}
+            Participant count: ${chat.participants.length}
+            `);
+        } else {
+            msg.reply('This command can only be used in a group!');
+        }
+    }
+});
 
 client.initialize();
 
@@ -81,10 +106,42 @@ io.on('connection', function (socket) {
     });
 });
 
+// Check the number is registered
+const checkRegisteredNumber = async (number) => {
+
+    const isRegistered  = await client.isRegisteredUser(number);
+    return isRegistered;
+}
+
 // Send Message
-app.post('/send-message', (req, res) => {
-    const number    = req.body.number;
-    const message   = req.body.message;
+app.post('/send-message', [
+    body('number').notEmpty(),
+    body('message').notEmpty()
+], async (req, res) => {
+    const errors    = validationResult(req).formatWith(({ msg }) => {
+        return msg;
+    });
+
+    if (!errors.isEmpty()) 
+    {
+        return res.status(422).json({
+            status: false,
+            message: errors.mapped()
+        });    
+    }
+
+    const number        = formatNumber(req.body.number);
+    const message       = req.body.message;
+
+    const isRegistered  = await checkRegisteredNumber(number);
+
+    if (!isRegistered) 
+    {
+        return res.status(422).json({
+            status: false,
+            message: "The number wasn't registered"
+        });
+    }
 
     client.sendMessage(number, message).then(response => {
         res.status(200).json({
@@ -99,6 +156,7 @@ app.post('/send-message', (req, res) => {
     });
 });
 
+// HTTP Server Process
 server.listen(8000, function() {
     console.log('App Running on *: '+8000)
 });

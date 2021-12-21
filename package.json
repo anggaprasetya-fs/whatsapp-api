@@ -19,6 +19,7 @@
   "homepage": "https://github.com/anggaprasetya-fs/whatsapp-api#readme",
   "dependencies": {
     "express": "^4.17.2",
+    "express-validator": "^6.14.0",
     "http": "^0.0.1-security",
     "qrcode": "^1.5.0",
     "qrcode-terminal": "^0.12.0",
